@@ -23,12 +23,18 @@ require 'spec_helper'
 
     context 'Create stack with compose file' do
       let(:params) { {
-        'stack_name' => 'foo', 	
+        'stack_name' => 'foo',
         'compose_files' => ['/tmp/docker-compose.yaml'],
         'resolve_image' => 'always',
       } }
       it { should contain_exec('docker stack create foo').with_command(/docker stack deploy/) }
-      it { should contain_exec('docker stack create foo').with_command(/--compose-file '\/tmp\/docker-compose.yaml'/) }
+      it { should contain_exec('docker stack create foo').with_command(/--compose-file '\/tmp\/docker-compose\.yaml'/) }
+      it do
+        should contain_exec('docker stack refresh foo').with(
+          'refreshonly' => true,
+          'command'     => /docker stack deploy --compose-file '\/tmp\/docker-compose\.yaml'/
+        ).that_comes_before('Exec[docker stack create foo]')
+      end
     end
 
     context 'Create stack with multiple compose files' do
